@@ -30,6 +30,28 @@ public sealed class EntraIdOptions
     public string? Audience { get; init; }
 
     /// <summary>
+    /// Scope the SPA requests so its access token is issued for this API rather than for
+    /// Microsoft Graph. Defaults to the Application ID URI form of <see cref="ClientId"/>,
+    /// which is what "Expose an API" creates unless the URI was customised.
+    /// </summary>
+    public string? ApiScope { get; init; }
+
+    /// <summary>
+    /// Authority the browser is redirected to. Single-tenant, because a multi-tenant authority
+    /// would let any Microsoft directory's users reach the sign-in page.
+    /// </summary>
+    public string? Authority =>
+        IsConfigured ? $"{Instance.TrimEnd('/')}/{TenantId}" : null;
+
+    /// <summary>
+    /// <see cref="ApiScope"/> if set, otherwise the conventional Application ID URI scope.
+    /// </summary>
+    public string? EffectiveApiScope =>
+        !string.IsNullOrWhiteSpace(ApiScope) ? ApiScope
+        : IsConfigured ? $"api://{ClientId}/access_as_user"
+        : null;
+
+    /// <summary>
     /// Role granted to a user signing in through SSO for the first time who carries no
     /// recognised app role. Deliberately the least privileged one — an unmapped identity
     /// should be able to look around, not administer anything.

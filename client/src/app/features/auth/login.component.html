@@ -6,7 +6,7 @@
       <p>Sign in to continue.</p>
     </div>
 
-    @if (submitting()) {
+    @if (submitting() || redirecting()) {
       <mat-progress-bar mode="indeterminate" />
     }
 
@@ -61,6 +61,32 @@
         {{ submitting() ? 'Signing in…' : 'Sign in' }}
       </button>
     </form>
+
+    <!--
+      Single sign-on, drawn only when the API reports a configured tenant. A deployment
+      without one never sees a button that cannot work.
+    -->
+    @if (ssoConfiguration()?.enabled) {
+      <div class="login__divider"><span>or</span></div>
+
+      <button
+        mat-stroked-button
+        type="button"
+        class="login__sso"
+        [disabled]="submitting() || redirecting()"
+        (click)="signInWithMicrosoft()"
+      >
+        <!-- The Microsoft mark. Inline because it is four rectangles, and the alternative is
+             a webfont or an image request for something this small. -->
+        <svg class="login__sso-logo" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <rect x="1" y="1" width="8" height="8" fill="#f25022" />
+          <rect x="11" y="1" width="8" height="8" fill="#7fba00" />
+          <rect x="1" y="11" width="8" height="8" fill="#00a4ef" />
+          <rect x="11" y="11" width="8" height="8" fill="#ffb900" />
+        </svg>
+        {{ redirecting() ? 'Redirecting…' : 'Sign in with Microsoft' }}
+      </button>
+    }
 
     <!--
       Seeded demo accounts. Present because this is an evaluation build with a local database

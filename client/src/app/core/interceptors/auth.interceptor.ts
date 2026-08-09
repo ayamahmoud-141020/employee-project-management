@@ -4,7 +4,7 @@ import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from
 import { AuthService } from '../services/auth.service';
 
 /** Endpoints that must not carry a token, and must never trigger a refresh. */
-const ANONYMOUS_ROUTES = ['/api/auth/login', '/api/auth/refresh'];
+const ANONYMOUS_ROUTES = ['/api/auth/login', '/api/auth/refresh', '/api/auth/sso'];
 
 /**
  * Queue for requests that arrive while a token refresh is already running.

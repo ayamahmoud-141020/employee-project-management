@@ -1,18 +1,32 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, from, tap, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   ApiResponse,
   AuthenticatedUser,
   AuthenticationResponse,
+  CurrentUser,
   UserRole,
 } from '../models/api.models';
 
 const ACCESS_TOKEN_KEY = 'epm.accessToken';
 const REFRESH_TOKEN_KEY = 'epm.refreshToken';
 const USER_KEY = 'epm.user';
+const SESSION_KIND_KEY = 'epm.sessionKind';
+
+/**
+ * How the current session was established.
+ *
+ * The two renew their access tokens by different means — a local session posts its refresh
+ * token to this API, an external one asks the identity provider — so the session has to
+ * remember which it is.
+ */
+export type SessionKind = 'local' | 'external';
+
+/** Asks the identity provider for a fresh access token. Registered by the SSO service. */
+export type ExternalTokenRenewer = () => Promise<string>;
 
 /**
  * Holds the signed-in session and answers "may this user do X?".
@@ -39,6 +53,8 @@ export class AuthService {
   /** True while a refresh is in flight, so the interceptor does not start a second one. */
   private refreshing = false;
 
+  private externalTokenRenewer: ExternalTokenRenewer | null = null;
+
   login(email: string, password: string): Observable<AuthenticatedUser> {
     return this.http
       .post<ApiResponse<AuthenticationResponse>>('/api/auth/login', { email, password })
@@ -50,15 +66,68 @@ export class AuthService {
   }
 
   /**
-   * Swaps the refresh token for a new access token.
+   * Adopts an access token issued by the external identity provider.
+   *
+   * The token is the provider's, so this app cannot read a role out of it and be believed —
+   * an SSO user's role is decided server-side during claims transformation. `auth/me` is
+   * therefore the authority on who just signed in, and calling it doubles as proof the API
+   * accepts the token before the user is sent to a page that assumes it does.
+   */
+  signInWithExternalToken(accessToken: string): Observable<AuthenticatedUser> {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(SESSION_KIND_KEY, 'external');
+
+    return this.http.get<ApiResponse<CurrentUser>>('/api/auth/me').pipe(
+      map((response) => toAuthenticatedUser(response.data!)),
+      tap({
+        next: (user) => {
+          localStorage.setItem(USER_KEY, JSON.stringify(user));
+          this.currentUser.set(user);
+        },
+        // A token the API will not accept must not leave a half-signed-in session behind.
+        error: () => this.clearSession(),
+      }),
+    );
+  }
+
+  /** Lets the SSO service supply token renewal without this service importing MSAL. */
+  registerExternalTokenRenewer(renew: ExternalTokenRenewer): void {
+    this.externalTokenRenewer = renew;
+  }
+
+  get sessionKind(): SessionKind {
+    return localStorage.getItem(SESSION_KIND_KEY) === 'external' ? 'external' : 'local';
+  }
+
+  /**
+   * Obtains a fresh access token, by whichever route this session was established.
    *
    * Returns the new access token so the interceptor can retry the request that triggered it.
    */
   refresh(): Observable<string> {
+    return this.sessionKind === 'external' ? this.renewExternalToken() : this.renewLocalToken();
+  }
+
+  get isRefreshing(): boolean {
+    return this.refreshing;
+  }
+
+  get accessToken(): string | null {
+    return localStorage.getItem(ACCESS_TOKEN_KEY);
+  }
+
+  logout(redirectTo: string = '/login'): void {
+    this.clearSession();
+    void this.router.navigate([redirectTo]);
+  }
+
+  private renewLocalToken(): Observable<string> {
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
 
     if (!refreshToken) {
-      throw new Error('No refresh token available.');
+      // An error notification rather than a synchronous throw: the interceptor's catchError
+      // is what signs the user out, and it only runs on the returned stream.
+      return throwError(() => new Error('No refresh token available.'));
     }
 
     this.refreshing = true;
@@ -80,20 +149,38 @@ export class AuthService {
       );
   }
 
-  get isRefreshing(): boolean {
-    return this.refreshing;
+  /**
+   * Renews through the identity provider, which succeeds silently while the provider's own
+   * session is alive and fails once it is not — at which point the interceptor signs out.
+   */
+  private renewExternalToken(): Observable<string> {
+    const renew = this.externalTokenRenewer;
+
+    if (!renew) {
+      return throwError(() => new Error('No external token renewer is registered.'));
+    }
+
+    this.refreshing = true;
+
+    return from(renew()).pipe(
+      tap({
+        next: (token) => {
+          localStorage.setItem(ACCESS_TOKEN_KEY, token);
+          this.refreshing = false;
+        },
+        error: () => {
+          this.refreshing = false;
+        },
+      }),
+    );
   }
 
-  get accessToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
-  }
-
-  logout(redirectTo: string = '/login'): void {
+  private clearSession(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(SESSION_KIND_KEY);
     this.currentUser.set(null);
-    void this.router.navigate([redirectTo]);
   }
 
   /**
@@ -121,6 +208,16 @@ export class AuthService {
     localStorage.setItem(USER_KEY, JSON.stringify(session.user));
     this.currentUser.set(session.user);
   }
+}
+
+function toAuthenticatedUser(user: CurrentUser): AuthenticatedUser {
+  return {
+    id: user.id,
+    email: user.email,
+    displayName: user.displayName,
+    role: user.role,
+    employeeId: user.employeeId,
+  };
 }
 
 function readStoredUser(): AuthenticatedUser | null {

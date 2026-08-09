@@ -42,6 +42,7 @@ core.
 | Auth | JWT bearer, PBKDF2 password hashing, Microsoft.Identity.Web for Entra ID |
 | Docs | Swashbuckle / OpenAPI |
 | Frontend | Angular 19 (standalone components, signals), TypeScript, SCSS, Angular Material |
+| Frontend auth | MSAL Browser 5 for the Entra ID redirect flow, lazy-loaded |
 | Tests | xUnit, FluentAssertions, NSubstitute, Testcontainers |
 | Infrastructure | Docker Compose |
 
@@ -166,7 +167,9 @@ the only one that sees every screen below.
 ### Sign in
 
 Email and password against the local account store. The three seeded accounts are listed on
-the card itself; their passwords come from your `.env`, never from this repository.
+the card itself; their passwords come from your `.env`, never from this repository. A
+**Sign in with Microsoft** button appears below the form when the API reports a configured
+tenant — the shot below is from a deployment with SSO off.
 
 ![Sign-in screen](docs/screenshots/01-login.jpg)
 
@@ -465,6 +468,7 @@ Azure tenant.
 | `EntraId:TenantId` | Directory (tenant) ID from the app registration |
 | `EntraId:ClientId` | Application (client) ID |
 | `EntraId:Audience` | Usually the client ID; `api://{clientId}` when tokens are requested against an Application ID URI |
+| `EntraId:ApiScope` | Scope the SPA requests, so its token is audienced for this API rather than Graph. Defaults to `api://{clientId}/access_as_user` |
 | `EntraId:DefaultRole` | Role for a first-time SSO user carrying no recognised app role. Defaults to the least-privileged `User` |
 
 Startup validates that `Enabled` implies `TenantId` and `ClientId` are both set, so a
@@ -480,6 +484,22 @@ half-filled configuration fails loudly instead of producing a scheme that reject
 5. For the SPA, add a **Single-page application** platform with redirect URI
    `http://localhost:4211` and enable the authorization code flow with PKCE.
 
+### The sign-in button
+
+The Angular client asks `GET /api/auth/sso` — an anonymous endpoint returning only public
+app-registration values — before it decides whether to draw **Sign in with Microsoft**. A
+deployment therefore turns SSO on by configuring the API alone: the client is built once, no
+tenant id is compiled into the bundle, and a build with SSO off never shows a button that
+cannot work.
+
+MSAL is loaded with a dynamic `import()`, so it lands in its own lazy chunk (~155 kB) that a
+password-only deployment never downloads.
+
+**On adding `@azure/msal-browser`.** Authorization code with PKCE has real failure modes —
+`state` and `nonce` validation, the code-verifier exchange, token caching, silent renewal
+through a hidden iframe. This is the case where the library is the responsible choice, and it
+is Microsoft's own.
+
 ### Authentication flow
 
 1. The SPA redirects the user to Entra ID (authorization code + PKCE).
@@ -494,6 +514,12 @@ half-filled configuration fails loudly instead of producing a scheme that reject
    who already had a password does not end up with two identities.
 5. From that point an SSO user carries the same `uid`, `role` and `eid` claims as a local one,
    and resolves through the identical authorization model.
+6. The client stores the Entra access token as the session token and calls `GET /api/auth/me`
+   for the identity — it never reads a role out of the token itself, because an SSO user's role
+   is assigned server-side in step 4 and the token is not the last word on it. Renewal goes
+   back to MSAL rather than to `/api/auth/refresh`; an expiring SSO session ends in a silent
+   token acquisition, and a sign-out ends the Entra session too rather than leaving the next
+   click to walk straight back in.
 
 While SSO is enabled, Entra is the source of truth for a user's role: a change in the directory
 takes effect on their next sign-in.
@@ -527,8 +553,14 @@ Two deliberate concessions, both narrow, both documented in `EntraIdApiFactory`:
   property is preserved rather than waived — `A_token_from_an_unexpected_issuer_is_rejected`
   proves a wrong issuer is still refused.
 
+The browser half was checked by pointing the API at a placeholder tenant and pressing the
+button: MSAL builds the authorize request against the configured authority with
+`response_type=code` and `code_challenge_method=S256`, requests the API scope, and Microsoft
+answers `AADSTS90002: Tenant not found` — the furthest a request can get without a real
+directory.
+
 **What remains unverified**, because it is not code in this repository: Microsoft's own token
-issuance, the interactive sign-in UI, and the app-registration settings in the Azure portal.
+issuance, the sign-in UI it hosts, and the app-registration settings in the Azure portal.
 
 Two real findings came out of writing these tests:
 
@@ -704,9 +736,9 @@ untranslatable at runtime while every in-memory test passed.
   a larger size, generating them from `/swagger/v1/swagger.json` removes a class of drift.
 - **Audit trail.** Who changed what and when — the aggregates already raise domain events, so
   the hook exists.
-- **Add the MSAL redirect flow to the SPA login page**, behind the existing configuration
-  flag. The API side of SSO is verified (see [Single sign-on](#single-sign-on-with-entra-id));
-  the browser-side sign-in button is not yet wired up.
-- **Confirm against a live tenant.** The protocol is verified locally, but Microsoft's own
-  token issuance and the portal app-registration settings can only be exercised with a real
+- **Confirm SSO against a live tenant.** The protocol is verified locally and the browser
+  redirect is verified as far as Microsoft's authorize endpoint, but Microsoft's own token
+  issuance and the portal app-registration settings can only be exercised with a real
   subscription.
+- **Jasmine specs for the SSO service.** The redirect-completion path and the token renewer
+  are the two pieces worth covering once frontend tests exist.

@@ -32,6 +32,8 @@ public static class DependencyInjection
         services.AddApplicationAuthentication(configuration);
         services.AddApplicationAuthorization();
 
+        services.AddSingleton<ISsoConfigurationProvider, EntraIdSsoConfigurationProvider>();
+
         services.AddScoped<DatabaseSeeder>();
         services.AddOptions<SeedOptions>().Bind(configuration.GetSection(SeedOptions.SectionName));
 

@@ -52,6 +52,7 @@ services:
       EntraId__TenantId: ${ENTRA_TENANT_ID:-}
       EntraId__ClientId: ${ENTRA_CLIENT_ID:-}
       EntraId__Audience: ${ENTRA_AUDIENCE:-}
+      EntraId__ApiScope: ${ENTRA_API_SCOPE:-}
     ports:
       - "5211:5211"
 

@@ -171,6 +171,29 @@ export interface AuthenticatedUser {
   employeeId: number | null;
 }
 
+/**
+ * What the API reports about itself at `GET /api/auth/sso`.
+ *
+ * Read at runtime rather than baked into the bundle, so the same build serves a deployment
+ * with SSO on and one with it off, and no tenant id is compiled in.
+ */
+export interface SsoConfiguration {
+  enabled: boolean;
+  authority: string | null;
+  clientId: string | null;
+  apiScope: string | null;
+}
+
+/** `GET /api/auth/me` — the server's account of who the caller is. */
+export interface CurrentUser {
+  id: number;
+  email: string;
+  displayName: string;
+  role: UserRole;
+  employeeId: number | null;
+  isExternalIdentity: boolean;
+}
+
 export interface AuthenticationResponse {
   accessToken: string;
   expiresAtUtc: string;

@@ -82,6 +82,42 @@
     }
   }
 
+  // A rule with the word set into it, rather than a bare line: it has to read as "these are
+  // two ways to do the same thing", not as the end of the form.
+  &__divider {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin: $space-4 0;
+    color: $slate-500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: $slate-200;
+    }
+  }
+
+  &__sso {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    width: 100%;
+    height: 44px;
+  }
+
+  &__sso-logo {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
   &__hint {
     display: flex;
     flex-wrap: wrap;

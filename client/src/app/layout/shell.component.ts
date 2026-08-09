@@ -5,6 +5,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
+import { SsoService } from '../core/services/sso.service';
 
 interface NavItem {
   label: string;
@@ -35,6 +36,7 @@ interface NavItem {
 })
 export class ShellComponent {
   private readonly auth = inject(AuthService);
+  private readonly sso = inject(SsoService);
 
   readonly user = this.auth.user;
   readonly menuOpen = signal(false);
@@ -77,6 +79,14 @@ export class ShellComponent {
   }
 
   logout(): void {
+    const wasExternal = this.auth.sessionKind === 'external';
+
     this.auth.logout();
+
+    if (wasExternal) {
+      // Best effort: the local session is already gone, so a provider that cannot be reached
+      // leaves the user signed out here regardless.
+      void this.sso.signOut().catch(() => undefined);
+    }
   }
 }
