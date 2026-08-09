@@ -1,0 +1,91 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+// Cards rather than a table: this page shows a handful of rows with a lot of detail each,
+// which reads better stacked than squeezed into columns.
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: $space-4;
+}
+
+.card {
+  @include surface;
+
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-4;
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__title {
+    color: $slate-900;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      color: $primary-600;
+      text-decoration: underline;
+    }
+  }
+
+  &__description {
+    margin: 0;
+    color: $slate-600;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  &__meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-3;
+    margin: 0;
+    padding-top: $space-3;
+    border-top: 1px solid $slate-200;
+
+    dt {
+      color: $slate-500;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      margin: 2px 0 0;
+      color: $slate-800;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-7 $space-4;
+  color: $slate-500;
+  text-align: center;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: $slate-300;
+  }
+
+  p {
+    margin: 0;
+  }
+}

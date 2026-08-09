@@ -1,0 +1,65 @@
+<div class="shell">
+  <mat-toolbar class="shell__toolbar">
+    <button
+      mat-icon-button
+      class="shell__menu-toggle"
+      type="button"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="shell-nav"
+      aria-label="Toggle navigation"
+      (click)="toggleMenu()"
+    >
+      <mat-icon>{{ menuOpen() ? 'close' : 'menu' }}</mat-icon>
+    </button>
+
+    <a class="shell__brand" routerLink="/dashboard">
+      <mat-icon>hub</mat-icon>
+      <span>Employee &amp; Project Management</span>
+    </a>
+
+    <span class="shell__spacer"></span>
+
+    <button mat-button [matMenuTriggerFor]="accountMenu" class="shell__account">
+      <span class="shell__avatar" aria-hidden="true">{{ initials() }}</span>
+      <span class="shell__account-name">{{ user()?.displayName }}</span>
+      <mat-icon>expand_more</mat-icon>
+    </button>
+
+    <mat-menu #accountMenu="matMenu">
+      <div class="shell__account-detail">
+        <strong>{{ user()?.displayName }}</strong>
+        <span>{{ user()?.email }}</span>
+        <span class="epm-badge--neutral">{{ user()?.role }}</span>
+      </div>
+      <button mat-menu-item type="button" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Sign out</span>
+      </button>
+    </mat-menu>
+  </mat-toolbar>
+
+  <div class="shell__body">
+    <nav id="shell-nav" class="shell__nav" [class.shell__nav--open]="menuOpen()">
+      @for (item of navItems(); track item.route) {
+        <a
+          class="shell__nav-link"
+          [routerLink]="item.route"
+          routerLinkActive="shell__nav-link--active"
+          (click)="closeMenu()"
+        >
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <!-- Clicking outside the drawer closes it on mobile, where the nav overlays the page. -->
+    @if (menuOpen()) {
+      <div class="shell__scrim" (click)="closeMenu()"></div>
+    }
+
+    <main class="shell__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    No PackageReference here, and that is intentional. The domain is the one layer that must
+    stay free of infrastructure concerns — if a package ever needs to be added, that is a
+    signal the rule being modelled probably belongs in a slice instead.
+  -->
+
+</Project>

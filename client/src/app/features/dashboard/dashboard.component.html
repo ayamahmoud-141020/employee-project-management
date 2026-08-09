@@ -1,0 +1,100 @@
+<epm-page-header title="Dashboard" subtitle="Headline numbers across employees, departments and projects." />
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (data(); as stats) {
+  <section class="tiles">
+    <a class="tile" routerLink="/employees">
+      <span class="tile__icon tile__icon--blue"><mat-icon>groups</mat-icon></span>
+      <span class="tile__value">{{ stats.totalEmployees }}</span>
+      <span class="tile__label">Total employees</span>
+    </a>
+
+    <a class="tile" routerLink="/employees">
+      <span class="tile__icon tile__icon--green"><mat-icon>how_to_reg</mat-icon></span>
+      <span class="tile__value">{{ stats.activeEmployees }}</span>
+      <span class="tile__label">Active employees</span>
+      @if (stats.inactiveEmployees > 0) {
+        <span class="tile__hint">{{ stats.inactiveEmployees }} inactive</span>
+      }
+    </a>
+
+    <a class="tile" routerLink="/departments">
+      <span class="tile__icon tile__icon--purple"><mat-icon>apartment</mat-icon></span>
+      <span class="tile__value">{{ stats.totalDepartments }}</span>
+      <span class="tile__label">Departments</span>
+    </a>
+
+    <a class="tile" routerLink="/projects">
+      <span class="tile__icon tile__icon--amber"><mat-icon>work_outline</mat-icon></span>
+      <span class="tile__value">{{ stats.totalProjects }}</span>
+      <span class="tile__label">Total projects</span>
+    </a>
+
+    <a class="tile" routerLink="/projects">
+      <span class="tile__icon tile__icon--teal"><mat-icon>rocket_launch</mat-icon></span>
+      <span class="tile__value">{{ stats.activeProjects }}</span>
+      <span class="tile__label">Active projects</span>
+    </a>
+  </section>
+
+  <div class="panels">
+    <section class="panel">
+      <h2>Employees by department</h2>
+      @if (stats.employeesByDepartment.length === 0) {
+        <p class="panel__empty">No departments yet.</p>
+      } @else {
+        <ul class="bars">
+          @for (department of stats.employeesByDepartment; track department.departmentId) {
+            <li class="bars__row">
+              <span class="bars__label">{{ department.departmentName }}</span>
+              <span class="bars__track">
+                <!--
+                  Two stacked bars: the full headcount behind, the active portion in front, so
+                  the gap between them reads as the inactive count without a second chart.
+                -->
+                <span
+                  class="bars__fill bars__fill--total"
+                  [style.width.%]="barWidth(department.employeeCount, maxHeadcount())"
+                ></span>
+                <span
+                  class="bars__fill bars__fill--active"
+                  [style.width.%]="barWidth(department.activeEmployeeCount, maxHeadcount())"
+                ></span>
+              </span>
+              <span class="bars__value">
+                {{ department.activeEmployeeCount }}/{{ department.employeeCount }}
+              </span>
+            </li>
+          }
+        </ul>
+        <p class="bars__legend">
+          <span class="bars__swatch bars__swatch--active"></span> Active
+          <span class="bars__swatch bars__swatch--total"></span> Total
+        </p>
+      }
+    </section>
+
+    <section class="panel">
+      <h2>Projects by status</h2>
+      <ul class="bars">
+        @for (status of stats.projectsByStatus; track status.status) {
+          <li class="bars__row">
+            <span class="bars__label">
+              <span [class]="badgeClass(status.status)">{{ status.status }}</span>
+            </span>
+            <span class="bars__track">
+              <span
+                class="bars__fill bars__fill--active"
+                [style.width.%]="barWidth(status.count, maxStatusCount())"
+              ></span>
+            </span>
+            <span class="bars__value">{{ status.count }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+}

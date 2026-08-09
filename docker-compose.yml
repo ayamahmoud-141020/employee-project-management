@@ -1,0 +1,81 @@
+# Ports are deliberately off the framework defaults (4200 / 5000 / 1433) so this stack can run
+# alongside other projects without a collision. See README "Ports" before changing any of them —
+# the Angular proxy and the API connection string both assume these values.
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: epm-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in .env}
+      MSSQL_PID: Developer
+    ports:
+      - "14330:1433"
+    volumes:
+      - epm-sqldata:/var/opt/mssql
+    healthcheck:
+      # The API waits on this. sqlcmd moved to /opt/mssql-tools18 in the 2022 image and needs
+      # -C because the server presents a self-signed cert.
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  api:
+    build:
+      context: .
+      dockerfile: src/EPM.Api/Dockerfile
+    container_name: epm-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5211
+      # Double-underscore is the env-var form of a nested config key. These override
+      # appsettings.json, which ships with placeholders only.
+      ConnectionStrings__Default: "Server=sqlserver,1433;Database=EmployeeProjectManagement;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=True"
+      Jwt__Key: ${JWT_KEY:?set JWT_KEY in .env}
+      Jwt__Issuer: ${JWT_ISSUER:-epm-api}
+      Jwt__Audience: ${JWT_AUDIENCE:-epm-client}
+      # Required, not defaulted. A `:-` fallback here would silently create an admin account
+      # with a password published in this repository whenever the variable is missing —
+      # SeedOptions has no defaults for exactly the same reason.
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:?set SEED_ADMIN_PASSWORD in .env}
+      Seed__ManagerPassword: ${SEED_MANAGER_PASSWORD:?set SEED_MANAGER_PASSWORD in .env}
+      Seed__UserPassword: ${SEED_USER_PASSWORD:?set SEED_USER_PASSWORD in .env}
+      Cors__AllowedOrigins__0: "http://localhost:4211"
+      EntraId__Enabled: ${ENTRA_ENABLED:-false}
+      EntraId__Instance: ${ENTRA_INSTANCE:-https://login.microsoftonline.com/}
+      EntraId__TenantId: ${ENTRA_TENANT_ID:-}
+      EntraId__ClientId: ${ENTRA_CLIENT_ID:-}
+      EntraId__Audience: ${ENTRA_AUDIENCE:-}
+    ports:
+      - "5211:5211"
+
+  web:
+    # Host Node is v16, which Angular 19 refuses to build on. Running the dev server in a
+    # Node 20 container keeps the host untouched.
+    image: node:20-alpine
+    container_name: epm-web
+    working_dir: /app
+    depends_on:
+      - api
+    environment:
+      # Containers do not see the host's localhost, so the dev-server proxy targets the
+      # compose service name instead. See client/proxy.conf.json.
+      API_PROXY_TARGET: http://api:5211
+    volumes:
+      - ./client:/app
+      - epm-web-node-modules:/app/node_modules
+    ports:
+      - "4211:4211"
+    # --poll because inotify events from a bind-mounted host filesystem are unreliable in
+    # containers, so the watcher would otherwise miss edits made on the host.
+    command: sh -c "npm install --no-fund --no-audit && npx ng serve --host 0.0.0.0 --port 4211 --poll 2000 --proxy-config proxy.conf.js"
+
+volumes:
+  epm-sqldata:
+  epm-web-node-modules:

@@ -1,0 +1,12 @@
+@use '../../../styles/list-page' as *;
+
+:host {
+  @include list-page;
+}
+
+.cell-description {
+  max-width: 46ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

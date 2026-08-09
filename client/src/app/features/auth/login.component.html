@@ -1,0 +1,77 @@
+<div class="login">
+  <div class="login__card">
+    <div class="login__header">
+      <mat-icon class="login__logo">hub</mat-icon>
+      <h1>Employee &amp; Project Management</h1>
+      <p>Sign in to continue.</p>
+    </div>
+
+    @if (submitting()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    @if (errorMessage(); as message) {
+      <div class="login__error" role="alert">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ message }}</span>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login__form" novalidate>
+      <mat-form-field>
+        <mat-label>Email</mat-label>
+        <input
+          matInput
+          type="email"
+          formControlName="email"
+          autocomplete="username"
+          placeholder="admin@epm.local"
+        />
+        @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+          <mat-error>Email is required.</mat-error>
+        } @else if (form.controls.email.touched && form.controls.email.hasError('email')) {
+          <mat-error>Enter a valid email address.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          [type]="showPassword() ? 'text' : 'password'"
+          formControlName="password"
+          autocomplete="current-password"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          [attr.aria-pressed]="showPassword()"
+          (click)="togglePassword()"
+        >
+          <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+          <mat-error>Password is required.</mat-error>
+        }
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <!--
+      Seeded demo accounts. Present because this is an evaluation build with a local database
+      and no way to self-register; it would come out before any real deployment.
+    -->
+    <div class="login__hint">
+      <span>Demo accounts</span>
+      <code>admin&#64;epm.local</code>
+      <code>manager&#64;epm.local</code>
+      <code>user&#64;epm.local</code>
+      <small>Passwords are the ones set in your <code>.env</code>.</small>
+    </div>
+  </div>
+</div>

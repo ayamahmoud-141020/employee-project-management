@@ -1,0 +1,44 @@
+@use 'variables' as *;
+
+/// Applies below the mobile breakpoint, where tables have to become stacked cards.
+@mixin mobile {
+  @media (max-width: $breakpoint-mobile) {
+    @content;
+  }
+}
+
+@mixin tablet-down {
+  @media (max-width: $breakpoint-tablet) {
+    @content;
+  }
+}
+
+/// The standard white surface: page sections, cards, the table container.
+@mixin surface {
+  background: #fff;
+  border: 1px solid $slate-200;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+}
+
+/// A small status pill. Used for project status and active/inactive.
+@mixin badge($bg, $fg) {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: 2px $space-3;
+  border-radius: 999px;
+  background: $bg;
+  color: $fg;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+/// Truncates one line of text with an ellipsis. Needs a width constraint from the parent.
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

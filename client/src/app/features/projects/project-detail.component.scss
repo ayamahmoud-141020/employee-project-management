@@ -1,0 +1,102 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+@use '../../../styles/list-page' as *;
+
+:host {
+  // The team table reuses the shared table card and its mobile card treatment.
+  @include list-page;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  margin-bottom: $space-3;
+  color: $slate-500;
+  font-size: 0.875rem;
+  text-decoration: none;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    color: $primary-600;
+  }
+}
+
+.detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $space-5;
+
+  &__title {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-3;
+    align-items: center;
+
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  &__description {
+    max-width: 68ch; // Long lines are hard to scan; cap the measure rather than the container.
+    margin: $space-2 0 0;
+    color: $slate-600;
+    line-height: 1.6;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-5;
+    margin: $space-4 0 0;
+
+    dt {
+      color: $slate-500;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      margin: $space-1 0 0;
+      color: $slate-900;
+      font-weight: 600;
+    }
+  }
+}
+
+// A bar behind the number, so relative load across the team is readable at a glance.
+.allocation {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 120px;
+  padding: 2px $space-2;
+  border-radius: $radius-sm;
+  background: $slate-100;
+
+  &__bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    border-radius: $radius-sm;
+    background: rgba(37, 99, 235, 0.18);
+  }
+
+  span {
+    position: relative;
+    font-weight: 600;
+    font-size: 0.8125rem;
+  }
+}

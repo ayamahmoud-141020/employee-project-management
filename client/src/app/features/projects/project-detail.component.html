@@ -1,0 +1,141 @@
+@if (loading() && !project()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (notFound()) {
+  <div class="empty-state">
+    <mat-icon>search_off</mat-icon>
+    <p>That project no longer exists.</p>
+    <a mat-button routerLink="/projects">Back to projects</a>
+  </div>
+}
+
+<!-- Separate @if rather than an @else branch: the `as` alias is only available on @if. -->
+@if (!notFound() && project(); as current) {
+  <a class="back-link" routerLink="/projects">
+    <mat-icon>arrow_back</mat-icon>
+    All projects
+  </a>
+
+  <header class="detail-header">
+    <div>
+      <div class="detail-header__title">
+        <h1>{{ current.name }}</h1>
+        <span [class]="badgeClass(current.status)">{{ current.status }}</span>
+      </div>
+      @if (current.description) {
+        <p class="detail-header__description">{{ current.description }}</p>
+      }
+      <dl class="detail-header__meta">
+        <div>
+          <dt>Start</dt>
+          <dd>{{ current.startDate | date: 'mediumDate' }}</dd>
+        </div>
+        <div>
+          <dt>End</dt>
+          <dd>{{ current.endDate ? (current.endDate | date: 'mediumDate') : 'Open-ended' }}</dd>
+        </div>
+        <div>
+          <dt>Team size</dt>
+          <dd>{{ team().length }}</dd>
+        </div>
+        <div>
+          <dt>Total allocation</dt>
+          <dd>{{ totalAllocation() }}%</dd>
+        </div>
+      </dl>
+    </div>
+
+    @if (canManage()) {
+      <button mat-flat-button color="primary" type="button" (click)="assign()">
+        <mat-icon>person_add</mat-icon>
+        Assign employee
+      </button>
+    }
+  </header>
+
+  <section class="table-card">
+    <div class="table-card__scroll">
+      <table mat-table [dataSource]="team()">
+        <ng-container matColumnDef="employee">
+          <th mat-header-cell *matHeaderCellDef>Employee</th>
+          <td mat-cell *matCellDef="let member" data-label="Employee">
+            <span class="cell-strong">{{ member.employeeName }}</span>
+            <div class="cell-muted">{{ member.employeeEmail }}</div>
+            @if (!member.employeeIsActive) {
+              <span class="epm-badge--inactive">Inactive</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="department">
+          <th mat-header-cell *matHeaderCellDef>Department</th>
+          <td mat-cell *matCellDef="let member" data-label="Department">
+            {{ member.departmentName }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="role">
+          <th mat-header-cell *matHeaderCellDef>Role</th>
+          <td mat-cell *matCellDef="let member" data-label="Role">{{ member.role }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="assignedDate">
+          <th mat-header-cell *matHeaderCellDef>Assigned</th>
+          <td mat-cell *matCellDef="let member" data-label="Assigned">
+            {{ member.assignedDate | date: 'mediumDate' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="allocation">
+          <th mat-header-cell *matHeaderCellDef>Allocation</th>
+          <td mat-cell *matCellDef="let member" data-label="Allocation">
+            <div class="allocation">
+              <div class="allocation__bar" [style.width.%]="member.allocationPercentage"></div>
+              <span>{{ member.allocationPercentage }}%</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef aria-label="Actions"></th>
+          <td mat-cell *matCellDef="let member" data-label="Actions" class="cell-actions">
+            @if (canManage()) {
+              <button
+                mat-icon-button
+                type="button"
+                [matMenuTriggerFor]="rowMenu"
+                [attr.aria-label]="'Actions for ' + member.employeeName"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #rowMenu="matMenu">
+                <button mat-menu-item type="button" (click)="editAssignment(member)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Change role or allocation</span>
+                </button>
+                <button mat-menu-item type="button" (click)="remove(member)">
+                  <mat-icon>person_remove</mat-icon>
+                  <span>Remove from project</span>
+                </button>
+              </mat-menu>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </div>
+
+    @if (!loading() && team().length === 0) {
+      <div class="empty-state">
+        <mat-icon>groups</mat-icon>
+        <p>Nobody is assigned to this project yet.</p>
+        @if (canManage()) {
+          <button mat-button type="button" (click)="assign()">Assign the first employee</button>
+        }
+      </div>
+    }
+  </section>
+}

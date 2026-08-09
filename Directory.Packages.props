@@ -1,0 +1,64 @@
+<Project>
+
+  <!--
+    Central Package Management: versions live here only, and the individual .csproj files
+    reference packages without a Version attribute. Keeps seven projects from drifting onto
+    different EF Core / test-SDK versions, which is the usual cause of "works on my machine".
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="Application">
+    <!--
+      MediatR is deliberately pinned to 12.x. Version 13 moved to a commercial licence, and
+      nothing we use from it needs the newer API. Do not let a tooling "update all" bump this.
+    -->
+    <PackageVersion Include="MediatR" Version="12.4.1" />
+    <PackageVersion Include="FluentValidation" Version="11.11.0" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Persistence">
+    <!-- Latest 8.0.x servicing band. EF Core 10 exists but targets net10.0. -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.29" />
+  </ItemGroup>
+
+  <ItemGroup Label="Authentication">
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.29" />
+    <!--
+      Microsoft.Identity.Web drags in its own Microsoft.IdentityModel stack. This version must
+      match what it depends on (4.14.2 -> 8.22.0) or restore fails with NU1605, because
+      transitive pinning is on and an older central version reads as a downgrade.
+    -->
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="4.14.2" />
+  </ItemGroup>
+
+  <ItemGroup Label="API">
+    <!--
+      Swashbuckle stays on 7.x. From 9.0 it moved to Microsoft.OpenApi 2.0, which reshaped
+      the security-scheme/reference types used in SwaggerSetup. No functional gain for us.
+    -->
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.29" />
+  </ItemGroup>
+
+  <ItemGroup Label="Testing">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <!-- FluentAssertions stays on 6.x: 8.0 switched to a paid licence for commercial use. -->
+    <PackageVersion Include="FluentAssertions" Version="6.12.2" />
+    <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.29" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.13.0" />
+  </ItemGroup>
+
+</Project>

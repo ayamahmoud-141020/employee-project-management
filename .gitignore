@@ -1,0 +1,40 @@
+## .NET build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.user
+*.suo
+TestResults/
+coverage*.json
+coverage*.xml
+*.trx
+
+## Rider / VS / VS Code
+.idea/
+.vs/
+.vscode/*
+!.vscode/extensions.json
+
+## Node / Angular
+node_modules/
+client/dist/
+client/.angular/
+client/npm-debug.log*
+client/yarn-error.log*
+
+## Secrets — never commit these.
+## Local dev secrets belong in `dotnet user-secrets`; deployed secrets come from env vars.
+## appsettings.json is committed but holds placeholders only.
+appsettings.*.local.json
+appsettings.Local.json
+secrets.json
+*.pfx
+*.p12
+.env
+.env.*
+!.env.example
+
+## SQL Server container data if it is ever bind-mounted
+.docker-data/

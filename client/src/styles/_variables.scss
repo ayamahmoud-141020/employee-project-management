@@ -1,0 +1,51 @@
+// Design tokens. Everything visual references these rather than a literal colour, so the
+// palette can change in one place.
+
+// Neutrals — a single hue ramp keeps greys from drifting warm and cool against each other.
+$slate-50: #f8fafc;
+$slate-100: #f1f5f9;
+$slate-200: #e2e8f0;
+$slate-300: #cbd5e1;
+$slate-400: #94a3b8;
+$slate-500: #64748b;
+$slate-600: #475569;
+$slate-700: #334155;
+$slate-800: #1e293b;
+$slate-900: #0f172a;
+
+$primary-500: #2563eb;
+$primary-600: #1d4ed8;
+$primary-50: #eff6ff;
+
+// Status colours, shared by project-status chips and the active/inactive badges. Each pairs a
+// light background with a dark foreground so text on them clears WCAG AA.
+$success-bg: #dcfce7;
+$success-fg: #166534;
+$warning-bg: #fef3c7;
+$warning-fg: #92400e;
+$danger-bg: #fee2e2;
+$danger-fg: #991b1b;
+$info-bg: #dbeafe;
+$info-fg: #1e40af;
+$neutral-bg: $slate-100;
+$neutral-fg: $slate-600;
+
+$radius-sm: 6px;
+$radius-md: 10px;
+$radius-lg: 14px;
+
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 24px;
+$space-6: 32px;
+$space-7: 48px;
+
+$shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+$shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+// Single breakpoint. The layout only needs to answer one question — is there room for a
+// table, or does it have to stack — so a full breakpoint scale would be unused machinery.
+$breakpoint-mobile: 768px;
+$breakpoint-tablet: 1024px;

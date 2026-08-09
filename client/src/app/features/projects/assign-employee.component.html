@@ -1,0 +1,95 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit assignment' : 'Assign employee' }}</h2>
+
+@if (saving()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<mat-dialog-content>
+  @if (generalError(); as message) {
+    <div class="form-error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ message }}</span>
+    </div>
+  }
+
+  <form [formGroup]="form" id="assign-form" class="form-grid" (ngSubmit)="submit()" novalidate>
+    <mat-form-field class="form-grid__full">
+      <mat-label>Employee</mat-label>
+      <mat-select formControlName="employeeId">
+        @for (employee of employeeOptions(); track employee.id) {
+          <mat-option [value]="employee.id">
+            {{ employee.fullName }} — {{ employee.jobTitle }}
+          </mat-option>
+        }
+      </mat-select>
+      @if (isEdit) {
+        <mat-hint>Remove and re-add to assign a different person.</mat-hint>
+      } @else {
+        <mat-hint>Only active employees can be assigned.</mat-hint>
+      }
+      @if (form.controls.employeeId.hasError('server')) {
+        <mat-error>{{ form.controls.employeeId.getError('server') }}</mat-error>
+      } @else if (form.controls.employeeId.hasError('required')) {
+        <mat-error>Select an employee.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Role</mat-label>
+      <input matInput formControlName="role" placeholder="Tech Lead" />
+      @if (form.controls.role.hasError('server')) {
+        <mat-error>{{ form.controls.role.getError('server') }}</mat-error>
+      } @else if (form.controls.role.hasError('required')) {
+        <mat-error>A role is required.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Allocation %</mat-label>
+      <input matInput type="number" formControlName="allocationPercentage" min="1" max="100" />
+      <span matTextSuffix>%</span>
+      @if (form.controls.allocationPercentage.hasError('server')) {
+        <mat-error>{{ form.controls.allocationPercentage.getError('server') }}</mat-error>
+      } @else if (
+        form.controls.allocationPercentage.hasError('min') ||
+        form.controls.allocationPercentage.hasError('max')
+      ) {
+        <mat-error>Allocation must be between 1 and 100.</mat-error>
+      } @else if (form.controls.allocationPercentage.hasError('required')) {
+        <mat-error>Allocation is required.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="form-grid__full">
+      <mat-label>Assigned date</mat-label>
+      <!-- Bounded by the project's own schedule, so an out-of-range date cannot be picked. -->
+      <input
+        matInput
+        [matDatepicker]="picker"
+        [min]="minDate"
+        [max]="maxDate"
+        formControlName="assignedDate"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="picker" />
+      <mat-datepicker #picker />
+      <mat-hint>{{ scheduleHint() }}</mat-hint>
+      @if (form.controls.assignedDate.hasError('server')) {
+        <mat-error>{{ form.controls.assignedDate.getError('server') }}</mat-error>
+      } @else if (form.controls.assignedDate.hasError('required')) {
+        <mat-error>Assigned date is required.</mat-error>
+      } @else if (
+        form.controls.assignedDate.hasError('matDatepickerMin') ||
+        form.controls.assignedDate.hasError('matDatepickerMax')
+      ) {
+        <mat-error>Assigned date must fall inside the project schedule.</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" [disabled]="saving()" (click)="dialogRef.close()">Cancel</button>
+  <button mat-flat-button color="primary" type="submit" form="assign-form" [disabled]="saving()">
+    {{ saving() ? 'Saving…' : isEdit ? 'Save changes' : 'Assign' }}
+  </button>
+</mat-dialog-actions>

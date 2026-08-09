@@ -1,0 +1,180 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  &__toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    gap: $space-2;
+    background: #fff;
+    border-bottom: 1px solid $slate-200;
+    color: $slate-900;
+  }
+
+  &__menu-toggle {
+    display: none;
+
+    @include mobile {
+      display: inline-flex;
+    }
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    color: $slate-900;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+
+    mat-icon {
+      color: $primary-500;
+    }
+
+    // The full product name does not fit next to the account button on a phone.
+    span {
+      @include mobile {
+        display: none;
+      }
+    }
+  }
+
+  &__spacer {
+    flex: 1 1 auto;
+  }
+
+  &__account {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  &__account-name {
+    @include mobile {
+      display: none;
+    }
+  }
+
+  &__avatar {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: $primary-50;
+    color: $primary-600;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  &__account-detail {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding: $space-3 $space-4;
+    border-bottom: 1px solid $slate-200;
+    font-size: 0.875rem;
+
+    span:not([class]) {
+      color: $slate-500;
+    }
+
+    .epm-badge--neutral {
+      align-self: flex-start;
+      margin-top: $space-1;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    flex-shrink: 0;
+    width: 232px;
+    padding: $space-4 $space-3;
+    background: #fff;
+    border-right: 1px solid $slate-200;
+
+    // Off-canvas below the breakpoint: slides in over the content instead of squeezing it.
+    @include mobile {
+      position: fixed;
+      top: 64px;
+      bottom: 0;
+      left: 0;
+      z-index: 15;
+      transform: translateX(-100%);
+      transition: transform 0.2s ease;
+      box-shadow: $shadow-md;
+    }
+
+    &--open {
+      @include mobile {
+        transform: translateX(0);
+      }
+    }
+  }
+
+  &__nav-link {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-3;
+    border-radius: $radius-md;
+    color: $slate-600;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    &:hover {
+      background: $slate-100;
+      color: $slate-900;
+    }
+
+    &--active {
+      background: $primary-50;
+      color: $primary-600;
+      font-weight: 600;
+    }
+  }
+
+  &__scrim {
+    display: none;
+
+    @include mobile {
+      position: fixed;
+      inset: 64px 0 0;
+      z-index: 14;
+      display: block;
+      background: rgba(15, 23, 42, 0.4);
+    }
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0; // Without this a wide table stretches the flex item and the page scrolls sideways.
+    padding: $space-5;
+
+    @include mobile {
+      padding: $space-4 $space-3;
+    }
+  }
+}

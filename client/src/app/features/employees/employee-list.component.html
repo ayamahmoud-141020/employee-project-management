@@ -1,0 +1,163 @@
+<epm-page-header title="Employees" subtitle="Everyone on the payroll, active and inactive.">
+  @if (canManage()) {
+    <button actions mat-flat-button color="primary" type="button" (click)="create()">
+      <mat-icon>person_add</mat-icon>
+      Add employee
+    </button>
+  }
+</epm-page-header>
+
+<section class="filters">
+  <mat-form-field class="filters__search">
+    <mat-label>Search</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput [formControl]="searchControl" placeholder="Name, email or job title" />
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Department</mat-label>
+    <mat-select
+      [value]="departmentFilter()"
+      (selectionChange)="onDepartmentChange($event.value)"
+    >
+      <mat-option [value]="null">All departments</mat-option>
+      @for (department of departmentOptions(); track department.id) {
+        <mat-option [value]="department.id">{{ department.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Status</mat-label>
+    <mat-select [value]="activeFilter()" (selectionChange)="onActiveChange($event.value)">
+      <mat-option [value]="null">All</mat-option>
+      <mat-option [value]="true">Active</mat-option>
+      <mat-option [value]="false">Inactive</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  @if (hasFilters()) {
+    <button mat-button type="button" (click)="clearFilters()">
+      <mat-icon>filter_alt_off</mat-icon>
+      Clear
+    </button>
+  }
+</section>
+
+<section class="table-card">
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  <div class="table-card__scroll">
+    <table
+      mat-table
+      [dataSource]="rows()"
+      matSort
+      [matSortActive]="sortBy()"
+      [matSortDirection]="sortDescending() ? 'desc' : 'asc'"
+      (matSortChange)="onSortChange($event)"
+    >
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="lastName">Name</th>
+        <td mat-cell *matCellDef="let employee" data-label="Name">
+          <span class="cell-strong">{{ employee.fullName }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="email">Email</th>
+        <td mat-cell *matCellDef="let employee" data-label="Email">
+          <a [href]="'mailto:' + employee.email">{{ employee.email }}</a>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="jobTitle">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="jobTitle">Job title</th>
+        <td mat-cell *matCellDef="let employee" data-label="Job title">{{ employee.jobTitle }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="department">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="department">Department</th>
+        <td mat-cell *matCellDef="let employee" data-label="Department">
+          {{ employee.departmentName }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="hireDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="hireDate">Hired</th>
+        <td mat-cell *matCellDef="let employee" data-label="Hired">
+          {{ employee.hireDate | date: 'mediumDate' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="isActive">Status</th>
+        <td mat-cell *matCellDef="let employee" data-label="Status">
+          <span [class]="employee.isActive ? 'epm-badge--active' : 'epm-badge--inactive'">
+            {{ employee.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef aria-label="Actions"></th>
+        <td mat-cell *matCellDef="let employee" data-label="Actions" class="cell-actions">
+          <button
+            mat-icon-button
+            type="button"
+            [matMenuTriggerFor]="rowMenu"
+            [attr.aria-label]="'Actions for ' + employee.fullName"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #rowMenu="matMenu">
+            <button mat-menu-item type="button" (click)="edit(employee)">
+              <mat-icon>edit</mat-icon>
+              <span>Edit</span>
+            </button>
+            @if (employee.isActive) {
+              <button mat-menu-item type="button" (click)="deactivate(employee)">
+                <mat-icon>person_off</mat-icon>
+                <span>Deactivate</span>
+              </button>
+            } @else {
+              <button mat-menu-item type="button" (click)="reactivate(employee)">
+                <mat-icon>how_to_reg</mat-icon>
+                <span>Reactivate</span>
+              </button>
+            }
+          </mat-menu>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
+    </table>
+  </div>
+
+  @if (!loading() && rows().length === 0) {
+    <div class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <p>
+        {{
+          hasFilters()
+            ? 'No employees match these filters.'
+            : 'No employees yet.'
+        }}
+      </p>
+      @if (hasFilters()) {
+        <button mat-button type="button" (click)="clearFilters()">Clear filters</button>
+      }
+    </div>
+  }
+
+  <mat-paginator
+    [length]="totalCount()"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[5, 10, 25, 50]"
+    showFirstLastButtons
+    (page)="onPageChange($event)"
+  />
+</section>

@@ -1,0 +1,49 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+/// Shared layout for the create/edit dialogs: a two-column field grid that collapses to one
+/// column on a phone, plus the inline error banner.
+@mixin form-dialog {
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-2 $space-3;
+    padding-top: $space-2;
+
+    // Fields that need the full width — email, description — opt in.
+    &__full {
+      grid-column: 1 / -1;
+    }
+
+    @include mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-error {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin-bottom: $space-3;
+    padding: $space-3;
+    border: 1px solid $danger-fg;
+    border-radius: $radius-md;
+    background: $danger-bg;
+    color: $danger-fg;
+    font-size: 0.875rem;
+
+    mat-icon {
+      flex-shrink: 0;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .form-hint {
+    grid-column: 1 / -1;
+    margin: 0 0 $space-2;
+    color: $slate-500;
+    font-size: 0.8125rem;
+  }
+}

@@ -1,0 +1,65 @@
+<epm-page-header title="My assignments" subtitle="Projects you are currently assigned to.">
+  @if (assignments().length > 0) {
+    <span actions class="epm-badge--neutral">{{ totalAllocation() }}% allocated</span>
+  }
+</epm-page-header>
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (!loading()) {
+  @if (assignments().length === 0) {
+    <div class="empty-state">
+      <mat-icon>assignment_turned_in</mat-icon>
+      @if (hasEmployeeRecord()) {
+        <p>You are not assigned to any projects at the moment.</p>
+      } @else {
+        <p>This account is not linked to an employee record, so it has no assignments.</p>
+      }
+    </div>
+  } @else {
+    <div class="cards">
+      @for (assignment of assignments(); track assignment.projectId) {
+        <article class="card">
+          <header class="card__header">
+            <a class="card__title" [routerLink]="['/projects', assignment.projectId]">
+              {{ assignment.projectName }}
+            </a>
+            <span [class]="badgeClass(assignment.projectStatus)">{{ assignment.projectStatus }}</span>
+          </header>
+
+          @if (assignment.projectDescription) {
+            <p class="card__description">{{ assignment.projectDescription }}</p>
+          }
+
+          <dl class="card__meta">
+            <div>
+              <dt>My role</dt>
+              <dd>{{ assignment.role }}</dd>
+            </div>
+            <div>
+              <dt>Allocation</dt>
+              <dd>{{ assignment.allocationPercentage }}%</dd>
+            </div>
+            <div>
+              <dt>Assigned</dt>
+              <dd>{{ assignment.assignedDate | date: 'mediumDate' }}</dd>
+            </div>
+            <div>
+              <dt>Project runs</dt>
+              <dd>
+                {{ assignment.projectStartDate | date: 'mediumDate' }} —
+                {{
+                  assignment.projectEndDate
+                    ? (assignment.projectEndDate | date: 'mediumDate')
+                    : 'open-ended'
+                }}
+              </dd>
+            </div>
+          </dl>
+        </article>
+      }
+    </div>
+  }
+}

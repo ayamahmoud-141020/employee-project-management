@@ -1,0 +1,45 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit department' : 'Add department' }}</h2>
+
+@if (saving()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<mat-dialog-content>
+  @if (generalError(); as message) {
+    <div class="form-error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ message }}</span>
+    </div>
+  }
+
+  <form [formGroup]="form" id="department-form" class="form-grid" (ngSubmit)="submit()" novalidate>
+    <mat-form-field class="form-grid__full">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" />
+      @if (form.controls.name.hasError('server')) {
+        <mat-error>{{ form.controls.name.getError('server') }}</mat-error>
+      } @else if (form.controls.name.hasError('required')) {
+        <mat-error>Department name is required.</mat-error>
+      } @else if (form.controls.name.hasError('maxlength')) {
+        <mat-error>Name cannot exceed 100 characters.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="form-grid__full">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" rows="3" placeholder="Optional"></textarea>
+      @if (form.controls.description.hasError('server')) {
+        <mat-error>{{ form.controls.description.getError('server') }}</mat-error>
+      } @else if (form.controls.description.hasError('maxlength')) {
+        <mat-error>Description cannot exceed 500 characters.</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" [disabled]="saving()" (click)="dialogRef.close()">Cancel</button>
+  <button mat-flat-button color="primary" type="submit" form="department-form" [disabled]="saving()">
+    {{ saving() ? 'Saving…' : isEdit ? 'Save changes' : 'Add department' }}
+  </button>
+</mat-dialog-actions>

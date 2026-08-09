@@ -1,0 +1,104 @@
+<epm-page-header title="Departments" subtitle="Organisational units employees belong to.">
+  <button actions mat-flat-button color="primary" type="button" (click)="create()">
+    <mat-icon>add</mat-icon>
+    Add department
+  </button>
+</epm-page-header>
+
+<section class="filters">
+  <mat-form-field class="filters__search">
+    <mat-label>Search</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput [formControl]="searchControl" placeholder="Name or description" />
+  </mat-form-field>
+</section>
+
+<section class="table-card">
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  <div class="table-card__scroll">
+    <table mat-table [dataSource]="rows()">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let department" data-label="Name">
+          <span class="cell-strong">{{ department.name }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef>Description</th>
+        <td mat-cell *matCellDef="let department" data-label="Description">
+          @if (department.description) {
+            {{ department.description }}
+          } @else {
+            <span class="cell-muted">—</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="employees">
+        <th mat-header-cell *matHeaderCellDef>Employees</th>
+        <td mat-cell *matCellDef="let department" data-label="Employees">
+          <span
+            class="epm-badge--neutral"
+            [matTooltip]="
+              department.activeEmployeeCount + ' active of ' + department.employeeCount + ' total'
+            "
+          >
+            {{ department.activeEmployeeCount }} active / {{ department.employeeCount }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef aria-label="Actions"></th>
+        <td mat-cell *matCellDef="let department" data-label="Actions" class="cell-actions">
+          <button
+            mat-icon-button
+            type="button"
+            [matMenuTriggerFor]="rowMenu"
+            [attr.aria-label]="'Actions for ' + department.name"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #rowMenu="matMenu">
+            <button mat-menu-item type="button" (click)="edit(department)">
+              <mat-icon>edit</mat-icon>
+              <span>Edit</span>
+            </button>
+            <!--
+              Disabled rather than hidden when the department has people in it: a missing
+              button reads as a bug, whereas a disabled one with a tooltip explains itself.
+            -->
+            <button
+              mat-menu-item
+              type="button"
+              [disabled]="department.employeeCount > 0"
+              [matTooltip]="
+                department.employeeCount > 0
+                  ? 'Move its employees elsewhere before deleting.'
+                  : ''
+              "
+              (click)="delete(department)"
+            >
+              <mat-icon>delete_outline</mat-icon>
+              <span>Delete</span>
+            </button>
+          </mat-menu>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </div>
+
+  @if (!loading() && rows().length === 0) {
+    <div class="empty-state">
+      <mat-icon>apartment</mat-icon>
+      <p>No departments found.</p>
+    </div>
+  }
+</section>

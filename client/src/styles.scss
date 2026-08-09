@@ -1,0 +1,103 @@
+@use '@angular/material' as mat;
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+// Material 3 theming. Only the palette and typeface are customised — the component defaults
+// are sensible, and overriding them wholesale is how a design system turns unmaintainable.
+html {
+  // This app commits to a light palette: the tokens in _variables.scss define one set of
+  // colours, with no dark counterparts. Material's theme otherwise follows the OS
+  // prefers-color-scheme and switches its own surfaces to dark, which leaves Material-owned
+  // components (tables, menus, dialogs) dark while everything styled from those tokens stays
+  // light — dark text on dark backgrounds. Pinning the scheme keeps the two in agreement.
+  // Supporting dark mode properly means adding a dark value for every token, not removing this.
+  color-scheme: light;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Inter,
+      density: 0,
+    )
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: $slate-50;
+  color: $slate-800;
+  font-family: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  color: $slate-900;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+// Snackbar variants, defined here because the snackbar renders in an overlay outside every
+// component's view encapsulation.
+.epm-snack-success {
+  --mdc-snackbar-container-color: #{$success-fg};
+  --mdc-snackbar-supporting-text-color: #fff;
+  --mat-snack-bar-button-color: #fff;
+}
+
+.epm-snack-error {
+  --mdc-snackbar-container-color: #{$danger-fg};
+  --mdc-snackbar-supporting-text-color: #fff;
+  --mat-snack-bar-button-color: #fff;
+}
+
+// Shared status pills. Kept global so the list, the detail page and the dialogs cannot drift
+// apart on what "Active" looks like.
+.epm-badge {
+  &--active,
+  &--status-active {
+    @include badge($success-bg, $success-fg);
+  }
+
+  &--inactive,
+  &--status-cancelled {
+    @include badge($danger-bg, $danger-fg);
+  }
+
+  &--status-planning {
+    @include badge($warning-bg, $warning-fg);
+  }
+
+  &--status-completed {
+    @include badge($info-bg, $info-fg);
+  }
+
+  &--neutral {
+    @include badge($neutral-bg, $neutral-fg);
+  }
+}
+
+// Respect a user's reduced-motion setting rather than animating regardless.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

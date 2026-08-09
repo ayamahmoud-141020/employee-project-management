@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/.angular/
+client/dist/
+.git/
+.idea/
+.vs/
+.vscode/
+**/TestResults/
+tests/
+.env
+*.md

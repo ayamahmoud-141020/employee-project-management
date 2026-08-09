@@ -1,0 +1,6 @@
+@use '../../../styles/form-dialog' as *;
+
+// Field grid and error banner are shared with the project and department dialogs.
+:host {
+  @include form-dialog;
+}

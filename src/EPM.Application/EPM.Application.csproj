@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <!-- EF Core (not the SqlServer provider) so slices can write LINQ queries and call the
+         async extension methods against IAppDbContext. The provider stays in Infrastructure. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Vertical slices own their HTTP endpoint, so this project needs the ASP.NET Core types
+      (IEndpointRouteBuilder, Results, [FromQuery]). A FrameworkReference pulls them from the
+      shared runtime rather than dragging in packages. The trade is deliberate: co-locating
+      the route with its handler is the point of the style, and the alternative — a separate
+      Controllers folder — splits every feature across two projects.
+    -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EPM.Domain\EPM.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Handlers, validators and endpoints are internal: nothing outside this assembly should
+      construct them, they are reached through MediatR and the endpoint scanner. Tests are the
+      exception — testing a handler directly is far more useful than testing it through the
+      bus, which would only prove MediatR works.
+    -->
+    <InternalsVisibleTo Include="EPM.Application.UnitTests" />
+  </ItemGroup>
+
+</Project>

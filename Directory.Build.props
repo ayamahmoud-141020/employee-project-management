@@ -1,0 +1,16 @@
+<Project>
+
+  <!-- Shared compiler settings so every project agrees on language level and null handling. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- Nullable-reference warnings are errors: they catch the "forgot to check for null"
+         class of bug at compile time, which matters most in the domain layer. -->
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+</Project>

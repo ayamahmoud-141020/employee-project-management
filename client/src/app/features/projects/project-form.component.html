@@ -1,0 +1,87 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit project' : 'New project' }}</h2>
+
+@if (saving()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<mat-dialog-content>
+  @if (generalError(); as message) {
+    <div class="form-error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ message }}</span>
+    </div>
+  }
+
+  <form [formGroup]="form" id="project-form" class="form-grid" (ngSubmit)="submit()" novalidate>
+    <mat-form-field class="form-grid__full">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" />
+      @if (form.controls.name.hasError('server')) {
+        <mat-error>{{ form.controls.name.getError('server') }}</mat-error>
+      } @else if (form.controls.name.hasError('required')) {
+        <mat-error>Project name is required.</mat-error>
+      } @else if (form.controls.name.hasError('maxlength')) {
+        <mat-error>Name cannot exceed 200 characters.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="form-grid__full">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" rows="3" placeholder="Optional"></textarea>
+      @if (form.controls.description.hasError('server')) {
+        <mat-error>{{ form.controls.description.getError('server') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Start date</mat-label>
+      <input matInput [matDatepicker]="startPicker" formControlName="startDate" />
+      <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
+      <mat-datepicker #startPicker />
+      @if (form.controls.startDate.hasError('server')) {
+        <mat-error>{{ form.controls.startDate.getError('server') }}</mat-error>
+      } @else if (form.controls.startDate.hasError('required')) {
+        <mat-error>Start date is required.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>End date</mat-label>
+      <input
+        matInput
+        [matDatepicker]="endPicker"
+        [min]="form.controls.startDate.value"
+        formControlName="endDate"
+        placeholder="Optional"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
+      <mat-datepicker #endPicker />
+      @if (form.controls.endDate.hasError('server')) {
+        <mat-error>{{ form.controls.endDate.getError('server') }}</mat-error>
+      } @else if (form.hasError('endBeforeStart')) {
+        <mat-error>End date must be on or after the start date.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="form-grid__full">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status">
+        @for (status of statuses; track status) {
+          <mat-option [value]="status">{{ status }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.status.hasError('server')) {
+        <mat-error>{{ form.controls.status.getError('server') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <p class="form-hint">Leave the end date blank for an open-ended project.</p>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" [disabled]="saving()" (click)="dialogRef.close()">Cancel</button>
+  <button mat-flat-button color="primary" type="submit" form="project-form" [disabled]="saving()">
+    {{ saving() ? 'Saving…' : isEdit ? 'Save changes' : 'Create project' }}
+  </button>
+</mat-dialog-actions>

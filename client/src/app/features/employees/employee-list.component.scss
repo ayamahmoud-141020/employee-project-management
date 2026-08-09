@@ -1,0 +1,7 @@
+@use '../../../styles/list-page' as *;
+
+// The employees table shares its filter bar, table card and mobile card layout with the
+// projects and departments pages — see _list-page.scss.
+:host {
+  @include list-page;
+}

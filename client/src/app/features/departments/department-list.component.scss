@@ -1,0 +1,5 @@
+@use '../../../styles/list-page' as *;
+
+:host {
+  @include list-page;
+}
