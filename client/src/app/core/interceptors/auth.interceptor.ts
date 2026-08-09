@@ -34,7 +34,6 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
       }
 
       if (auth.isRefreshing) {
-        // Wait for the in-flight refresh, then retry with whatever it produced.
         return refreshedToken.pipe(
           filter((value): value is string => value !== null),
           take(1),
@@ -42,6 +41,10 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         );
       }
 
+      // Cleared before the refresh starts, and the filter above is why. A BehaviorSubject
+      // replays its current value to every new subscriber, so without this reset a request
+      // arriving mid-refresh would be handed the *previous* token — the rotated-away one that
+      // caused its 401 in the first place — and retry straight into another failure.
       refreshedToken.next(null);
 
       return auth.refresh().pipe(

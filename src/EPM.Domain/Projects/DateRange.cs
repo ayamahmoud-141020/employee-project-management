@@ -6,8 +6,8 @@ namespace EPM.Domain.Projects;
 /// A project's schedule: a required start and an optional end.
 /// </summary>
 /// <remarks>
-/// End is nullable on purpose — an open-ended project ("runs until we stop it") is a real
-/// thing, and forcing a placeholder date would corrupt every report that filters on it.
+/// End is nullable on purpose — a project that runs until someone stops it is a real thing,
+/// and forcing a placeholder date would corrupt every report that filters on it.
 /// Pairing the two dates in one value object is what makes start &lt;= end impossible to
 /// violate: you cannot change one without the other being re-checked.
 /// </remarks>

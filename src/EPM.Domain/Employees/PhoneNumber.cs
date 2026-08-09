@@ -53,7 +53,10 @@ public sealed partial class PhoneNumber : ValueObject
 
     public override string ToString() => Value;
 
-    // A leading + plus digits, spaces, dashes, dots and one bracketed area code.
+    // A character whitelist, deliberately not a format. The digit count above is what actually
+    // validates; this only keeps letters and punctuation out of the column. Numbering plans
+    // differ too much between countries for a stricter pattern to do anything but reject
+    // legitimate numbers.
     [GeneratedRegex(@"^\+?[\d\s\-.()]+$", RegexOptions.CultureInvariant)]
     private static partial Regex AllowedCharacters();
 }

@@ -7,7 +7,7 @@ namespace EPM.Domain.Identity;
 /// <remarks>
 /// A single role per user, not a collection. The spec describes three tiers where each one
 /// is strictly broader than the last, and modelling that as many-to-many would add a table
-/// and a join for no behaviour we actually need. If overlapping roles ever appear, this
+/// and a join for no behaviour this system has. If overlapping roles ever appear, this
 /// becomes a UserRoles collection and only the token service and policies change.
 /// </remarks>
 public enum UserRole
