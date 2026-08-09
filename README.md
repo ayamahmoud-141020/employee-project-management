@@ -14,6 +14,7 @@ core.
 - [Technologies](#technologies)
 - [Architecture](#architecture)
 - [Features](#features)
+- [Screens](#screens)
 - [Database structure](#database-structure)
 - [Setup](#setup)
 - [Ports](#ports)
@@ -154,6 +155,77 @@ race, the second fails at the database, which is the correct outcome.
   per endpoint. Optional Entra ID SSO.
 - **Errors** — one response envelope for every outcome, with field-keyed validation messages
   that the Angular forms attach to the matching control.
+
+---
+
+## Screens
+
+All shots are from the seeded demo data, signed in as `admin@epm.local` — the Admin role is
+the only one that sees every screen below.
+
+### Sign in
+
+Email and password against the local account store. The three seeded accounts are listed on
+the card itself; their passwords come from your `.env`, never from this repository.
+
+![Sign-in screen](docs/screenshots/01-login.jpg)
+
+### Dashboard
+
+Five headline counts across the top, then employees-by-department and projects-by-status
+breakdowns. Every number is aggregated in SQL rather than counted in memory.
+
+![Dashboard](docs/screenshots/02-dashboard.jpg)
+
+### Employees
+
+Server-side search, department and status filters, sortable columns and paging — the grid
+holds 18 seeded employees, two of them soft-deleted and showing as *Inactive*. The row menu
+covers edit, deactivate and reactivate.
+
+![Employees list](docs/screenshots/03-employees.jpg)
+
+### Employee form
+
+Add and edit run through the same dialog. Required fields are marked, and validation errors
+returned by the API are attached back onto the matching control.
+
+![Add employee dialog](docs/screenshots/04-employee-form.jpg)
+
+### Departments
+
+Admin-only, matching the API's `CanManageDepartments` policy. The employee count per
+department is shown as active-over-total; deletion is blocked while any employee remains.
+
+![Departments list](docs/screenshots/05-departments.jpg)
+
+### Projects
+
+The four project statuses — Planning, Active, Completed, Cancelled — with search, status
+filter, sorting and team size per row.
+
+![Projects list](docs/screenshots/06-projects.jpg)
+
+### Project detail and assignments
+
+The team for one project, each member with a role and an allocation percentage. Total
+allocation is summed across the team, so over-commitment is visible at a glance.
+
+![Project detail with assignments](docs/screenshots/07-project-detail.jpg)
+
+### My assignments
+
+The projects the signed-in user is assigned to, scoped from their own token rather than a
+route parameter — available to every role.
+
+![My assignments](docs/screenshots/08-my-assignments.jpg)
+
+### API documentation
+
+Swagger UI, grouped by feature, with the authorization policies documented in the header and
+a lock icon on every endpoint that requires a token.
+
+![Swagger UI](docs/screenshots/09-swagger.jpg)
 
 ---
 
